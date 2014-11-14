@@ -61,6 +61,6 @@ def main():
         print cypher_indices
         for ct in cypher_indices:
             print hex(ct)
-        
+
 if __name__ == '__main__':
     main()
