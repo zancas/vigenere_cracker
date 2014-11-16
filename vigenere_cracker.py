@@ -12,16 +12,16 @@ def collect_modular_elements(vigenere_cyphertext):
     return modulus_streams
 
 def create_Nth_stream(iterable, N, max_len):
-    stream = {}
+    Nth_stream = {}
     for index, element in enumerate(iterable):
         try:
-            stream[index%N].append(element)
+            Nth_stream[index%N].append(element)
         except KeyError:
-            stream[index%N] = [element]
-    print "stream: %s" % stream
+            Nth_stream[index%N] = [element]
+    print "Nth_stream: %s" % Nth_stream
     scaling_factor = float(max_len) / float(N)
-    find_scaled_most_freq_in_stream(stream, scaling_factor)
-    return stream
+    find_scaled_most_freq_in_Nth_stream(Nth_stream, scaling_factor)
+    return Nth_stream
 
 def most_freq_in_list(iterable):
     count_dict = {}
@@ -34,14 +34,15 @@ def most_freq_in_list(iterable):
     most_frequent = max(count_dict.values())
     return most_frequent
 
-def find_scaled_most_freq_in_stream(stream, scaling_factor):
+def find_scaled_most_freq_in_Nth_stream(Nth_stream, scaling_factor):
     max_seen = 0
-    for obs_vals in stream.values():
-        scaling_factor = 
+    for obs_vals in Nth_stream.values():
         max_count = most_freq_in_list(obs_vals)
-        if max_seen < max_count:
-            max_seen = max_count
+        scaled_max = max_count / scaling_factor
+        if max_seen < scaled_max:
+            max_seen = scaled_max
     print "max_seen is %s" % max_seen
+    return max_seen
 
 def main():
     import sys
