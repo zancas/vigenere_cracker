@@ -55,19 +55,19 @@ class VigenereAnalyzer(Analyzer):
         most_frequent = max(count_dict.values())
         return most_frequent
 
-    def find_scaled_most_freq_in_Nth_stream(self, Nth_stream, scaling_factor):
-        count_of_most_frequent = 0
+    def collect_most_freq_from_Nth_stream(self, Nth_stream, scaling_factor):
+        most_freq_list = []
         for obs_vals in Nth_stream.values():
-            max_count = self.most_freq_in_list(obs_vals)
-            scaled_max =  max_count * scaling_factor
-            if count_of_most_frequent < scaled_max:
-                count_of_most_frequent = scaled_max
-            print "count_of_most_frequent is %s" % count_of_most_frequent
-        return count_of_most_frequent
+            most_freq_list.append(self.most_freq_in_list(obs_vals))
+        return most_freq_list
 
     def guess_key_length(self):
-        for modulus_stream in modulus_streams:
-            pass
+        mod_stream_scaled_maxes = []
+        for kl_guess_minus_one, modulus_stream in enumerate(modulus_streams):
+            kl_guess = kl_guess_minus_one + 1
+            max_list = self.collect_most_freq_from_Nth_stream(modulus_stream)
+            max_stat = sum(max_list) * kl_guess
+            mod_stream_scaled_maxes.append(max_stat)
 
 
 def main():
