@@ -1,3 +1,5 @@
+import sys
+
 def chunker(iterable, chunksize):
     for i in xrange(0, len(iterable), chunksize):
         yield iterable[i:i+chunksize]
@@ -63,17 +65,49 @@ class VigenereAnalyzer(Analyzer):
 
     def guess_key_length(self):
         mod_stream_scaled_maxes = []
+        guessed_lengths = []
+        exceptions = []
         for kl_guess_minus_one, modulus_stream in enumerate(self.modulus_streams):
             kl_guess = kl_guess_minus_one + 1
             max_list = self.collect_most_freq_from_Nth_stream(modulus_stream)
             max_stat = sum(max_list) / float(kl_guess)
             mod_stream_scaled_maxes.append(max_stat)
-        for i, maxf in enumerate(mod_stream_scaled_maxes):
-            print "%s: %04s" % (i,maxf)
+        for i, current_ms_scaled_max in enumerate(mod_stream_scaled_maxes):
+            try:
+                previous_max = mod_stream_scaled_maxes[i-1]
+            except IndexError:
+                continue
 
+            if previous_max < current_ms_scaled_max:
+                try:
+                    next_max = mod_stream_scaled_maxes[i+1]
+                except IndexError:
+                    continue
+
+                previous_current_dist = abs(previous_max - current_ms_scaled_max)
+                current_upcoming_dist = abs(current_ms_scaled_max - next_max)
+                previous_upcoming_dist = abs(previous_max - next_max)
+                if (previous_current_dist > (6*previous_upcoming_dist)) and (current_upcoming_dist > (6*previous_upcoming_dist)):
+                    guessed_lengths.append(i+1)
+                    #print "%s: %s" % (i-1,previous_max)
+                    #print "%s: %s" % (i,current_ms_scaled_max)
+                    #print "%s: %s" % (i+1,next_max)
+        best_guess = guessed_lengths[0]
+        for glen in guessed_lengths:
+            if glen%guessed_lengths[0] == 0:
+                continue
+            else:
+                #print "glen: %s not divisible by guessed_length[0]: %s Guess again!" % (glen, guessed_lengths[0])
+                exceptions.append(glen)
+        print guessed_lengths
+        print exceptions
+        multiples_of_best = [x for x in range(0, self.data_length, best_guess)[1:]]
+        for mob in multiples_of_best:
+            if mob not in guessed_lengths:
+                print "mob not seen! mob: %s" % mob
+        return guessed_lengths[0]
 
 def main():
-    import sys
     if sys.argv[1] == 'length':
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
