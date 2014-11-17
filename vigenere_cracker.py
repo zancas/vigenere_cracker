@@ -99,8 +99,8 @@ class VigenereAnalyzer(Analyzer):
             else:
                 #print "glen: %s not divisible by guessed_length[0]: %s Guess again!" % (glen, guessed_lengths[0])
                 exceptions.append(glen)
-        print guessed_lengths
-        print exceptions
+        #print guessed_lengths
+        #print exceptions
         multiples_of_best = [x for x in range(0, self.data_length, best_guess)[1:]]
         for mob in multiples_of_best:
             if mob not in guessed_lengths:
