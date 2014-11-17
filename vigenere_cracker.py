@@ -38,7 +38,7 @@ class VigenereAnalyzer(Analyzer):
                 Nth_stream[period].append(element)
             except KeyError:
                 Nth_stream[period] = [element]
-        self.find_scaled_most_freq_in_Nth_stream(Nth_stream, N)
+        #self.find_scaled_most_freq_in_Nth_stream(Nth_stream, N)
         return Nth_stream
 
     def create_freq_dict(self, iterable):
@@ -65,14 +65,13 @@ class VigenereAnalyzer(Analyzer):
             print "count_of_most_frequent is %s" % count_of_most_frequent
         return count_of_most_frequent
 
+
 def main():
     import sys
     if sys.argv[1] == 'length':
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         analyzer = VigenereAnalyzer(chunked_cyphertext)
-        print "about to collect"
-        analyzer.collect_modular_elements()
 
     """elif sys.argv[1] == 'key':
         fc = (open(sys.argv[2], 'r').read()).strip()
