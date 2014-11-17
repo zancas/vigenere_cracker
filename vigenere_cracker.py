@@ -16,12 +16,12 @@ class VigenereAnalyzer(Analyzer):
 
     def collect_modular_elements(self):
         """
-        return a dict with keys which are possible key lengths
+        return a list of streams, each index is `key_length_guess - 1`
         """
-        modulus_streams = {}
+        modulus_streams = []
         for posited_key_length in xrange(1, self.data_length):
             print "key length guess: %s" % posited_key_length
-            modulus_streams[posited_key_length] = self.create_Nth_stream(self.raw_data, posited_key_length)
+            modulus_streams.append(self.create_Nth_stream(self.raw_data, posited_key_length))
             print
 
         return modulus_streams
@@ -66,6 +66,9 @@ class VigenereAnalyzer(Analyzer):
         return count_of_most_frequent
 
     def guess_key_length(self):
+        for modulus_stream in modulus_streams:
+            pass
+
 
 def main():
     import sys
@@ -73,8 +76,8 @@ def main():
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         analyzer = VigenereAnalyzer(chunked_cyphertext)
-        analyzer.guess_key_length()
-        
+        #analyzer.guess_key_length()
+
     """elif sys.argv[1] == 'key':
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
