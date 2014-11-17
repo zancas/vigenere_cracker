@@ -10,7 +10,7 @@ class Analyzer(object):
 class VigenereAnalyzer(Analyzer):
     def __init__(self, raw_data):
         Analyzer.__init__(self, raw_data)
-        print "self.raw_data: %s" % self.raw_data
+        #print "self.raw_data: %s" % self.raw_data
         self.data_length = len(raw_data)
         self.modulus_streams = self.collect_modular_elements()
 
@@ -20,9 +20,9 @@ class VigenereAnalyzer(Analyzer):
         """
         modulus_streams = []
         for posited_key_length in xrange(1, self.data_length):
-            print "key length guess: %s" % posited_key_length
+            #print "key length guess: %s" % posited_key_length
             modulus_streams.append(self.create_Nth_stream(self.raw_data, posited_key_length))
-            print
+            #print
 
         return modulus_streams
 
@@ -38,7 +38,6 @@ class VigenereAnalyzer(Analyzer):
                 Nth_stream[period].append(element)
             except KeyError:
                 Nth_stream[period] = [element]
-        #self.find_scaled_most_freq_in_Nth_stream(Nth_stream, N)
         return Nth_stream
 
     def create_freq_dict(self, iterable):
@@ -55,19 +54,22 @@ class VigenereAnalyzer(Analyzer):
         most_frequent = max(count_dict.values())
         return most_frequent
 
-    def collect_most_freq_from_Nth_stream(self, Nth_stream, scaling_factor):
+    def collect_most_freq_from_Nth_stream(self, Nth_stream):
         most_freq_list = []
-        for obs_vals in Nth_stream.values():
-            most_freq_list.append(self.most_freq_in_list(obs_vals))
+        for period in Nth_stream.values():
+            most = self.most_freq_in_list(period)
+            most_freq_list.append(most)
         return most_freq_list
 
     def guess_key_length(self):
         mod_stream_scaled_maxes = []
-        for kl_guess_minus_one, modulus_stream in enumerate(modulus_streams):
+        for kl_guess_minus_one, modulus_stream in enumerate(self.modulus_streams):
             kl_guess = kl_guess_minus_one + 1
             max_list = self.collect_most_freq_from_Nth_stream(modulus_stream)
-            max_stat = sum(max_list) * kl_guess
+            max_stat = sum(max_list) / float(kl_guess)
             mod_stream_scaled_maxes.append(max_stat)
+        for i, maxf in enumerate(mod_stream_scaled_maxes):
+            print "%s: %04s" % (i,maxf)
 
 
 def main():
@@ -76,7 +78,7 @@ def main():
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         analyzer = VigenereAnalyzer(chunked_cyphertext)
-        #analyzer.guess_key_length()
+        analyzer.guess_key_length()
 
     """elif sys.argv[1] == 'key':
         fc = (open(sys.argv[2], 'r').read()).strip()
