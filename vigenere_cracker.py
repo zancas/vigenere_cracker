@@ -27,12 +27,17 @@ class VigenereAnalyzer(Analyzer):
         return modulus_streams
 
     def create_Nth_stream(self, iterable, N):
+        """
+        return a dict where a key is an offset start positions, and a value is a list of bytes sampled
+        from that offset with a perfiod set by the "N" parameter
+        """
         Nth_stream = {}
         for index, element in enumerate(iterable):
+            period = index%N
             try:
-                Nth_stream[index%N].append(element)
+                Nth_stream[period].append(element)
             except KeyError:
-                Nth_stream[index%N] = [element]
+                Nth_stream[period] = [element]
         self.find_scaled_most_freq_in_Nth_stream(Nth_stream, N)
         return Nth_stream
 
