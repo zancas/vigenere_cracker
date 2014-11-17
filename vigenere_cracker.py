@@ -65,6 +65,7 @@ class VigenereAnalyzer(Analyzer):
             print "count_of_most_frequent is %s" % count_of_most_frequent
         return count_of_most_frequent
 
+    def guess_key_length(self):
 
 def main():
     import sys
@@ -72,7 +73,8 @@ def main():
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         analyzer = VigenereAnalyzer(chunked_cyphertext)
-
+        analyzer.guess_key_length()
+        
     """elif sys.argv[1] == 'key':
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
