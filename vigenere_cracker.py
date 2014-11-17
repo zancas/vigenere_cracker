@@ -22,14 +22,17 @@ def create_Nth_stream(iterable, N):
     find_scaled_most_freq_in_Nth_stream(Nth_stream, N)
     return Nth_stream
 
-def most_freq_in_list(iterable):
+def create_freq_dict(iterable):
     count_dict = {}
     for element in iterable:
         try:
             count_dict[element] = count_dict[element] + 1
         except KeyError:
             count_dict[element] = 1
+    return count_dict
 
+def most_freq_in_list(iterable):
+    count_dict = create_freq_dict(iterable)
     most_frequent = max(count_dict.values())
     return most_frequent
 
@@ -46,12 +49,15 @@ def find_scaled_most_freq_in_Nth_stream(Nth_stream, scaling_factor):
 
 def main():
     import sys
-    if sys.argv[1] == 'read':
+    if sys.argv[1] == 'length':
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         collect_modular_elements(chunked_cyphertext)
 
-        #stream_7 = create_Nth_stream(chunked_cyphertext, 7)
+    elif sys.argv[1] == 'key':
+        fc = (open(sys.argv[2], 'r').read()).strip()
+        chunked_cyphertext = [x for x in chunker(fc, 2)]
+        stream_len = create_Nth_stream(chunked_cyphertext, int(sys.argv[3]))
 
 if __name__ == '__main__':
     main()
