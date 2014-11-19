@@ -1,36 +1,41 @@
 import sys
 
-freq_dict = {
-'a':.08167,
-'b':.01492,
-'c':.02782,
-'d':.04253,
-'e':.12702,
-'f':.02228,
-'g':.02015,
-'h':.06094,
-'i':.06966,
-'j':.00153,
-'k':.00772,
-'l':.04025,
-'m':.02406,
-'n':.06749,
-'o':.07507,
-'p':.01929,
-'q':.00095,
-'r':.05987,
-'s':.06327,
-'t':.09056,
-'u':.02758,
-'v':.00978,
-'w':.02360,
-'x':.00150,
-'y':.01974,
-'z':.00074}
+letter_freq_list = [
+    (1.0000,' '),
+    (.08167,'a'),
+    (.01492,'b'),
+    (.02782,'c'),
+    (.04253,'d'),
+    (.12702,'e'),
+    (.02228,'f'),
+    (.02015,'g'),
+    (.06094,'h'),
+    (.06966,'i'),
+    (.00153,'j'),
+    (.00772,'k'),
+    (.04025,'l'),
+    (.02406,'m'),
+    (.06749,'n'),
+    (.07507,'o'),
+    (.01929,'p'),
+    (.00095,'q'),
+    (.05987,'r'),
+    (.06327,'s'),
+    (.09056,'t'),
+    (.02758,'u'),
+    (.00978,'v'),
+    (.02360,'w'),
+    (.00150,'x'),
+    (.01974,'y'),
+    (.00074,'z')]
+
+letter_freq_list.sort()
+letter_freq_list.reverse()
 
 def chunker(iterable, chunksize):
     for i in xrange(0, len(iterable), chunksize):
         yield iterable[i:i+chunksize]
+
 
 class Analyzer(object):
     def __init__(self, raw_data):
@@ -47,18 +52,41 @@ class VigenereAnalyzer(Analyzer):
 
     def guess_key(self):
         self.periodic_offsets = self.modulus_streams[self.guessed_length-1]
+        self.key_guesses = {}
         for offset in range(self.guessed_length):
-            freq_dict = self.create_freq_dict(self.periodic_offsets[offset])
-            self.periodic_offsets[offset] = [self.periodic_offsets[offset], freq_dict]
+            cypher_stream_of_period = self.periodic_offsets[offset]
+            period_freq_dict = self.create_freq_dict(cypher_stream_of_period)
+            ordered_tuples_of_period = self.freq_dict_to_ordered_tuples(period_freq_dict)
+            self.periodic_offsets[offset] = [cypher_stream_of_period, ordered_tuples_of_period]
+            for XXX
+            XXXself.check_otups(offset, ordered_tuples_of_period, cypher_stream_of_period)
 
-        for offset in range(self.guessed_length):
-            ordered_frequencies = []
-            for k,v in (self.periodic_offsets[offset][1]).iteritems():
-                ordered_frequencies.append((v, k))
-            ordered_frequencies.sort()
-            ordered_frequencies.reverse()
-            (self.periodic_offsets[offset]).append(ordered_frequencies)
-        print self.periodic_offsets #list of bytes, count_dict, sorted most to least freq tuple list
+    def check_otups(self, offset, ot_of_period, ct_of_period):
+        for count_byte, freq_letter in zip(ot_of_period, letter_freq_list):
+            cypher_hex, plain_ascii = int(count_byte[1], base=16), ord(freq_letter[1])
+            byte_guess = cypher_hex^plain_ascii
+            weight = self.check_byte(byte_guess, ct_of_period)
+            if weight > 0:
+                self.key_guesses[offset] = {byte_guess:weight}
+
+    def check_byte(self, byte_guess, ct_stream):
+        weight = 0
+        for ct in ct_stream:
+            if byte_guess^ct < 32 or byte_guess^ct > 127:
+                weight = 0
+                break
+            else:
+                weight = weight + 1
+
+        return weight
+
+    def freq_dict_to_ordered_tuples(self, freq_dict):
+        list_of_abundance_in_period = []
+        for k,v in freq_dict.iteritems():
+            list_of_abundance_in_period.append((v, k))
+        list_of_abundance_in_period.sort()
+        list_of_abundance_in_period.reverse()
+        return list_of_abundance_in_period
 
     def collect_modular_elements(self):
         """
@@ -66,9 +94,7 @@ class VigenereAnalyzer(Analyzer):
         """
         modulus_streams = []
         for posited_key_length in xrange(1, self.data_length):
-            #print "key length guess: %s" % posited_key_length
             modulus_streams.append(self.create_Nth_stream(self.raw_data, posited_key_length))
-            #print
 
         return modulus_streams
 
