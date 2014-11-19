@@ -58,20 +58,23 @@ class VigenereAnalyzer(Analyzer):
             period_freq_dict = self.create_freq_dict(cypher_stream_of_period)
             ordered_tuples_of_period = self.freq_dict_to_ordered_tuples(period_freq_dict)
             self.periodic_offsets[offset] = [cypher_stream_of_period, ordered_tuples_of_period]
-            for XXX
-            XXXself.check_otups(offset, ordered_tuples_of_period, cypher_stream_of_period)
+            self.check_otups(offset, ordered_tuples_of_period, cypher_stream_of_period)
 
     def check_otups(self, offset, ot_of_period, ct_of_period):
-        for count_byte, freq_letter in zip(ot_of_period, letter_freq_list):
-            cypher_hex, plain_ascii = int(count_byte[1], base=16), ord(freq_letter[1])
-            byte_guess = cypher_hex^plain_ascii
-            weight = self.check_byte(byte_guess, ct_of_period)
-            if weight > 0:
-                self.key_guesses[offset] = {byte_guess:weight}
+        for start in range(0, len(letter_freq_list)-1):
+            correlation_structure = zip(ot_of_period[start:], letter_freq_list)
+            for count_byte, freq_letter in correlation_structure:
+                cypher_hex, plain_ascii = int(count_byte[1], base=16), ord(freq_letter[1])
+                print cypher_hex, plain_ascii
+                byte_guess = cypher_hex^plain_ascii
+                weight = self.check_byte(byte_guess, ct_of_period)
+                if weight > 0:
+                    self.key_guesses[offset] = {byte_guess:weight}
 
     def check_byte(self, byte_guess, ct_stream):
         weight = 0
-        for ct in ct_stream:
+        for ct_hex in ct_stream:
+            ct = int(ct_hex, base=16)
             if byte_guess^ct < 32 or byte_guess^ct > 127:
                 weight = 0
                 break
