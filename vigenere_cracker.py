@@ -1,5 +1,33 @@
 import sys
 
+freq_dict = {
+'a':.08167,
+'b':.01492,
+'c':.02782,
+'d':.04253,
+'e':.12702,
+'f':.02228,
+'g':.02015,
+'h':.06094,
+'i':.06966,
+'j':.00153,
+'k':.00772,
+'l':.04025,
+'m':.02406,
+'n':.06749,
+'o':.07507,
+'p':.01929,
+'q':.00095,
+'r':.05987,
+'s':.06327,
+'t':.09056,
+'u':.02758,
+'v':.00978,
+'w':.02360,
+'x':.00150,
+'y':.01974,
+'z':.00074}
+
 def chunker(iterable, chunksize):
     for i in xrange(0, len(iterable), chunksize):
         yield iterable[i:i+chunksize]
@@ -12,9 +40,25 @@ class Analyzer(object):
 class VigenereAnalyzer(Analyzer):
     def __init__(self, raw_data):
         Analyzer.__init__(self, raw_data)
-        #print "self.raw_data: %s" % self.raw_data
         self.data_length = len(raw_data)
         self.modulus_streams = self.collect_modular_elements()
+        self.guessed_length = self.guess_key_length()
+        self.guessed_key = self.guess_key()
+
+    def guess_key(self):
+        self.periodic_offsets = self.modulus_streams[self.guessed_length-1]
+        for offset in range(self.guessed_length):
+            freq_dict = self.create_freq_dict(self.periodic_offsets[offset])
+            self.periodic_offsets[offset] = [self.periodic_offsets[offset], freq_dict]
+
+        for offset in range(self.guessed_length):
+            ordered_frequencies = []
+            for k,v in (self.periodic_offsets[offset][1]).iteritems():
+                ordered_frequencies.append((v, k))
+            ordered_frequencies.sort()
+            ordered_frequencies.reverse()
+            (self.periodic_offsets[offset]).append(ordered_frequencies)
+        print self.periodic_offsets #list of bytes, count_dict, sorted most to least freq tuple list
 
     def collect_modular_elements(self):
         """
@@ -87,24 +131,20 @@ class VigenereAnalyzer(Analyzer):
                 previous_current_dist = abs(previous_max - current_ms_scaled_max)
                 current_upcoming_dist = abs(current_ms_scaled_max - next_max)
                 previous_upcoming_dist = abs(previous_max - next_max)
-                if (previous_current_dist > (6*previous_upcoming_dist)) and (current_upcoming_dist > (6*previous_upcoming_dist)):
+                if (previous_current_dist > (6*previous_upcoming_dist))\
+                   and (current_upcoming_dist > (6*previous_upcoming_dist)):
                     guessed_lengths.append(i+1)
-                    #print "%s: %s" % (i-1,previous_max)
-                    #print "%s: %s" % (i,current_ms_scaled_max)
-                    #print "%s: %s" % (i+1,next_max)
         best_guess = guessed_lengths[0]
         for glen in guessed_lengths:
             if glen%guessed_lengths[0] == 0:
                 continue
             else:
-                #print "glen: %s not divisible by guessed_length[0]: %s Guess again!" % (glen, guessed_lengths[0])
                 exceptions.append(glen)
-        #print guessed_lengths
-        #print exceptions
         multiples_of_best = [x for x in range(0, self.data_length, best_guess)[1:]]
         for mob in multiples_of_best:
             if mob not in guessed_lengths:
                 print "mob not seen! mob: %s" % mob
+
         return guessed_lengths[0]
 
 def main():
@@ -112,7 +152,7 @@ def main():
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         analyzer = VigenereAnalyzer(chunked_cyphertext)
-        analyzer.guess_key_length()
+        print analyzer.guessed_length
 
     """elif sys.argv[1] == 'key':
         fc = (open(sys.argv[2], 'r').read()).strip()
