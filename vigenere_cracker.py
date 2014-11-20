@@ -49,6 +49,23 @@ class VigenereAnalyzer(Analyzer):
         self.modulus_streams = self.collect_modular_elements()
         self.guessed_length = self.guess_key_length()
         self.guessed_key = self.guess_key()
+        #print self.key_guesses
+        self.guess_decryption()
+
+    def guess_decryption(self):
+        print self.guessed_key
+        guess_pt = ''
+        #Manual Key fiddling
+        self.guessed_key[2] = ord('y')^int(self.raw_data[2], base=16)
+        self.guessed_key[3] = ord('p')^int(self.raw_data[3], base=16)
+        self.guessed_key[4] = ord('t')^int(self.raw_data[4], base=16)
+        print map(chr, self.guessed_key)
+        for index, ct in enumerate(self.raw_data):
+            key_byte = self.guessed_key[index%self.guessed_length]
+            pchar_guess = key_byte^int(ct, base=16)
+            #print chr(pchar_guess)
+            guess_pt = guess_pt + chr(pchar_guess)
+        print guess_pt
 
     def guess_key(self):
         self.periodic_offsets = self.modulus_streams[self.guessed_length-1]
@@ -59,17 +76,26 @@ class VigenereAnalyzer(Analyzer):
             ordered_tuples_of_period = self.freq_dict_to_ordered_tuples(period_freq_dict)
             self.periodic_offsets[offset] = [cypher_stream_of_period, ordered_tuples_of_period]
             self.check_otups(offset, ordered_tuples_of_period, cypher_stream_of_period)
+        guess_list = []
+        for i in range(self.guessed_length):
+            guess_list.append(self.key_guesses[i])
+        return guess_list
 
     def check_otups(self, offset, ot_of_period, ct_of_period):
         for start in range(0, len(letter_freq_list)-1):
             correlation_structure = zip(ot_of_period[start:], letter_freq_list)
             for count_byte, freq_letter in correlation_structure:
                 cypher_hex, plain_ascii = int(count_byte[1], base=16), ord(freq_letter[1])
-                print cypher_hex, plain_ascii
+                #print cypher_hex, plain_ascii
                 byte_guess = cypher_hex^plain_ascii
                 weight = self.check_byte(byte_guess, ct_of_period)
                 if weight > 0:
-                    self.key_guesses[offset] = {byte_guess:weight}
+                    self.key_guesses[offset] = byte_guess
+                    #print "Pair implies ascii for all xors in stream! %s %s" % (count_byte[1], freq_letter[1])
+                    #print "Suggests: %s for position: %s" % (byte_guess, offset)
+                    return
+                else:
+                    print "Pair does not imply ascii for all xors: %s %s" % (count_byte[1], freq_letter[1])
 
     def check_byte(self, byte_guess, ct_stream):
         weight = 0
@@ -181,7 +207,7 @@ def main():
         fc = (open(sys.argv[2], 'r').read()).strip()
         chunked_cyphertext = [x for x in chunker(fc, 2)]
         analyzer = VigenereAnalyzer(chunked_cyphertext)
-        print analyzer.guessed_length
+        #print analyzer.guessed_length
 
     """elif sys.argv[1] == 'key':
         fc = (open(sys.argv[2], 'r').read()).strip()
